@@ -33,7 +33,7 @@ const tiers = [
     ],
     cta: "Choose Monthly",
     href: null,
-    priceId: "price_1Rwl9pLivI9SQBv08eJvjVpF", // Placeholder - replace with your actual Price ID
+    priceId: "price_1RwljYLivI9SQBv0HjGDpRZp",
   },
   {
     name: "Yearly",
