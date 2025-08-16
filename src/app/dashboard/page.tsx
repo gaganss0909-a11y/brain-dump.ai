@@ -74,9 +74,8 @@ export default function DashboardPage() {
   const [generationCount, setGenerationCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // This should be your actual Firebase User ID for safety.
-  // I've used a placeholder email check for now.
-  const ADMIN_EMAIL = "admin@example.com"; // Replace with your actual admin email if you have one.
+  // Replace this with your actual Firebase User email to enable the admin panel.
+  const ADMIN_EMAIL = "your-email@example.com"; 
   
   const isUserAdmin = user?.email === ADMIN_EMAIL;
 
