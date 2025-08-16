@@ -3,30 +3,68 @@
 import { Header } from "@/components/header";
 import { BrainDumpForm } from "@/components/braindump-form";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-// TODO: Replace this with actual subscription status from your database
 type SubscriptionTier = "Free" | "Monthly" | "Yearly";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  // Placeholder for subscription status. In a real app, you'd fetch this from your backend.
-  const [subscription, setSubscription] = useState<SubscriptionTier>("Free");
-  const [generationCount, setGenerationCount] = useState(0); // Placeholder for usage tracking
+  const [subscription, setSubscription] = useState<SubscriptionTier | null>(null);
+  const [generationCount, setGenerationCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      
+      const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        setIsLoading(true);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setSubscription(data.subscriptionTier || "Free");
+          setGenerationCount(data.generations || 0);
+        } else {
+          // Handle case where user doc might not exist yet
+          setSubscription("Free");
+          setGenerationCount(0);
+        }
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const handleGeneration = () => {
-    // In a real app, this would be updated after a successful generation
+    // This logic would now be handled via a server-side function
+    // that increments the count in Firestore after a successful generation.
+    // For now, we'll keep the client-side increment for visual feedback.
     setGenerationCount(prev => prev + 1);
   };
 
   if (!user) {
-    return null;
+    return null; // Or a loading/redirect state
   }
-  
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-accent" />
+        </main>
+      </div>
+    );
+  }
+
   const canGenerate = subscription !== 'Free' || generationCount < 1;
 
   return (

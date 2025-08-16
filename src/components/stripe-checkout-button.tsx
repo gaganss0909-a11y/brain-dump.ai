@@ -4,6 +4,7 @@ import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
@@ -17,22 +18,31 @@ interface StripeCheckoutButtonProps {
 }
 
 export function StripeCheckoutButton({ priceId, label }: StripeCheckoutButtonProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
+    if (!user) {
+      // Redirect to login or show a message if user is not authenticated
+      console.error("User is not logged in.");
+      return;
+    }
+
     setLoading(true);
     try {
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error("Stripe.js has not loaded yet.");
       }
-      // This is a client-side checkout. For production, you should
-      // create the checkout session on your server.
+      
       const { error } = await stripe.redirectToCheckout({
         lineItems: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
+        // Pass the user's email to pre-fill the checkout form.
+        // This is also useful for linking the Stripe customer to your user.
+        customerEmail: user.email!,
         // Replace with your actual success and cancel URLs
-        successUrl: `${window.location.origin}/dashboard`,
+        successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/pricing`,
       });
 
@@ -47,7 +57,7 @@ export function StripeCheckoutButton({ priceId, label }: StripeCheckoutButtonPro
   };
 
   return (
-    <Button onClick={handleCheckout} disabled={loading} className="w-full">
+    <Button onClick={handleCheckout} disabled={loading || !user} className="w-full">
       {loading ? <Loader2 className="animate-spin" /> : label}
     </Button>
   );
