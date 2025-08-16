@@ -32,7 +32,7 @@ export default function Home() {
             <div className="flex flex-col items-center space-y-8 text-center">
               <div className="space-y-4">
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter font-headline">
-                  Animate anything.
+                  BrainDump.io
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
                   From a fleeting thought to a full-fledged plan. BrainDump.io uses AI to instantly structure your app ideas into actionable development roadmaps.
