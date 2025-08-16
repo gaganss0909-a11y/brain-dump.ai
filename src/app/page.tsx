@@ -31,7 +31,7 @@ export default function Home() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-8 text-center">
               <div className="space-y-4">
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter font-headline">
+                <h1 className="text-8xl md:text-9xl font-bold tracking-tighter font-headline text-foreground/90">
                   BrainDump.io
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
@@ -40,7 +40,7 @@ export default function Home() {
               </div>
               <div className="w-full max-w-sm sm:max-w-md mx-auto">
                  <Link href="/dashboard">
-                    <Button size="lg" className="w-full group">
+                    <Button size="lg" className="w-full group bg-accent hover:bg-accent/90 text-black font-bold">
                       Get Started <MoveRight className="ml-2 transition-transform group-hover:translate-x-1" />
                     </Button>
                   </Link>
@@ -48,7 +48,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-card/40">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BrainIcon } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, LogIn, UserPlus } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -13,7 +13,7 @@ export function Header() {
   return (
     <header className="px-4 lg:px-6 h-16 flex items-center border-b">
       <Link href="/" className="flex items-center justify-center mr-auto" prefetch={false}>
-        <BrainIcon className="h-8 w-8 text-primary" />
+        <BrainIcon className="h-8 w-8 text-accent" />
         <span className="ml-3 text-xl font-bold font-headline tracking-wider">BRAINDUMP</span>
       </Link>
       <nav className="flex items-center gap-4">
@@ -29,12 +29,12 @@ export function Header() {
           </>
         ) : (
           <>
-            <Button variant="ghost" asChild>
+            <Button variant="link" asChild>
               <Link href="/login">
                 Login
               </Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="border-accent text-accent hover:bg-accent hover:text-black">
               <Link href="/signup">
                 Create Account
               </Link>
