@@ -10,8 +10,8 @@ import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { headers } from "next/headers";
 
 const formSchema = z.object({
-  appIdea: z.string().min(10, {
-    message: "Your app idea must be at least 10 characters.",
+  appIdea: z.string().min(20, {
+    message: "Your app idea must be at least 20 characters.",
   }),
   appType: z.enum(["Web App", "Mobile App"], {
     required_error: "You need to select an app type.",
@@ -29,7 +29,9 @@ async function incrementGenerationCountAction() {
         throw new Error("Authentication required. Please log in.");
     }
     
-    const user = JSON.parse(decodeURIComponent(userCookie));
+    // The cookie is URL-encoded, so we need to decode it before parsing
+    const decodedCookie = decodeURIComponent(userCookie);
+    const user = JSON.parse(decodedCookie);
 
     if (!user || !user.uid) {
         throw new Error("Authentication failed. User not found.");
