@@ -1,25 +1,26 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// IMPORTANT: Replace this with your own Firebase config object.
-// You can get this from the Firebase console.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  "projectId": "braindumpio",
+  "appId": "1:269555493583:web:eb781cfba54c8303b5a5ba",
+  "storageBucket": "braindumpio.firebasestorage.app",
+  "apiKey": "AIzaSyCzpWRbzJ7jIB3GtMrXpPT3-vUJKT3EX8M",
+  "authDomain": "braindumpio.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "269555493583"
 };
 
 // Initialize Firebase
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
 
 export const auth = getAuth(app);
