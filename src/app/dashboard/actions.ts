@@ -5,6 +5,9 @@ import {
   generateAppMarkdown,
   type GenerateAppMarkdownInput,
 } from "@/ai/flows/generate-app-markdown";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import { headers } from "next/headers";
 
 const formSchema = z.object({
   appIdea: z.string().min(10, {
@@ -18,10 +21,35 @@ const formSchema = z.object({
   }),
 });
 
+async function incrementGenerationCountAction() {
+    const headersList = headers();
+    const userCookie = headersList.get('cookie')?.split('; ').find(c => c.startsWith('user='))?.split('=')[1];
+    
+    if (!userCookie) {
+        throw new Error("Authentication required. Please log in.");
+    }
+    
+    const user = JSON.parse(decodeURIComponent(userCookie));
+
+    if (!user || !user.uid) {
+        throw new Error("Authentication failed. User not found.");
+    }
+
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+        generationCount: increment(1)
+    });
+}
+
+
 export async function generatePlanAction(values: z.infer<typeof formSchema>) {
   try {
     const validatedData: GenerateAppMarkdownInput = formSchema.parse(values);
     const result = await generateAppMarkdown(validatedData);
+
+    if(result) {
+        await incrementGenerationCountAction();
+    }
     return { success: true, data: result.markdownContent };
   } catch (error) {
     if (error instanceof z.ZodError) {

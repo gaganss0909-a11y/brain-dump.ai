@@ -89,7 +89,7 @@ export default function DashboardPage() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setSubscription(data.subscriptionTier || "Free");
-          setGenerationCount(data.generations || 0);
+          setGenerationCount(data.generationCount || 0);
         } else {
           // Handle case where user doc might not exist yet
           setSubscription("Free");
@@ -113,9 +113,9 @@ export default function DashboardPage() {
   }, [user, toast]);
 
   const handleGeneration = () => {
-    // This logic would now be handled via a server-side function
-    // that increments the count in Firestore after a successful generation.
-    // For now, we'll keep the client-side increment for visual feedback.
+    // This logic is now handled via the `generatePlanAction` server-side function
+    // which increments the count in Firestore after a successful generation.
+    // We still update client-side state for immediate visual feedback.
     setGenerationCount(prev => prev + 1);
   };
   
