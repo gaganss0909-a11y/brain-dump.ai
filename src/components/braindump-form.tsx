@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useState } from "react";
 import { generatePlanAction } from "@/app/dashboard/actions";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,10 +19,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, Loader2, Wand2 } from "lucide-react";
+import { Download, Loader2, Wand2, ArrowLeft, ArrowRight, Smartphone, Globe } from "lucide-react";
 
 const formSchema = z.object({
   appIdea: z.string().min(20, {
@@ -40,8 +40,15 @@ interface BrainDumpFormProps {
   onGenerate: () => void;
 }
 
+const stepHeaders = [
+  { title: "Describe Your Vision", description: "The more detail you provide, the better the plan." },
+  { title: "App Type", description: "Choose the type of application you want to develop." },
+  { title: "Build Tool", description: "Select your preferred tool for building the application." },
+  { title: "Your Generated Plan", description: "Here's the AI-generated roadmap for your app." },
+];
 
 export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
+  const [currentStep, setCurrentStep] = useState(0);
   const [generatedMarkdown, setGeneratedMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -52,6 +59,25 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
       appIdea: "",
     },
   });
+
+  const { trigger, getValues } = form;
+
+  const handleNext = async () => {
+    let isValid = false;
+    if (currentStep === 0) {
+      isValid = await trigger("appIdea");
+    } else if (currentStep === 1) {
+      isValid = await trigger("appType");
+    }
+
+    if (isValid) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!canGenerate) {
@@ -65,18 +91,20 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
 
     setIsLoading(true);
     setGeneratedMarkdown(null);
+    setCurrentStep(3); // Move to the results view
     const result = await generatePlanAction(values);
     setIsLoading(false);
 
     if (result.success) {
       setGeneratedMarkdown(result.data!);
-      onGenerate(); // Notify parent component that a generation occurred
+      onGenerate();
     } else {
       toast({
         variant: "destructive",
         title: "Oh no! Something went wrong.",
         description: result.error,
       });
+      setCurrentStep(2); // Go back to the last step on error
     }
   }
 
@@ -93,25 +121,24 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
   };
 
   return (
-    <div className="grid md:grid-cols-2 gap-8 items-start">
-      <Card className="md:sticky top-8">
-        <CardHeader>
-          <CardTitle>Describe Your Vision</CardTitle>
-          <CardDescription>The more detail you provide, the better the plan.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{stepHeaders[currentStep].title}</CardTitle>
+        <CardDescription>{stepHeaders[currentStep].description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {currentStep === 0 && (
               <FormField
                 control={form.control}
                 name="appIdea"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your App Idea</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="e.g., An app that helps users track their plant watering schedules with reminders and plant care tips."
-                        className="min-h-[150px]"
+                        className="min-h-[200px] bg-background"
                         {...field}
                         disabled={!canGenerate || isLoading}
                       />
@@ -120,134 +147,151 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
                   </FormItem>
                 )}
               />
+            )}
+
+            {currentStep === 1 && (
               <FormField
                 control={form.control}
                 name="appType"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>App Type</FormLabel>
                     <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                        disabled={!canGenerate || isLoading}
-                      >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Web App" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Web App</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Mobile App" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Mobile App</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(["Mobile App", "Web App"] as const).map((type) => (
+                           <Card
+                            key={type}
+                            onClick={() => form.setValue("appType", type)}
+                            className={cn(
+                              "cursor-pointer transition-all hover:shadow-lg",
+                              form.watch("appType") === type
+                                ? "border-accent ring-2 ring-accent"
+                                : "border-border"
+                            )}
+                          >
+                            <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                               {type === 'Mobile App' ? <Smartphone className="h-10 w-10 text-accent" /> : <Globe className="h-10 w-10 text-accent" />}
+                              <h3 className="font-bold text-lg">{type}</h3>
+                              <p className="text-muted-foreground text-sm">{type === 'Mobile App' ? 'iOS and Android' : 'Browser-based'}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-center pt-2" />
                   </FormItem>
                 )}
               />
-              <FormField
+            )}
+            
+            {currentStep === 2 && (
+               <FormField
                 control={form.control}
                 name="buildTool"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Build Tool</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                        disabled={!canGenerate || isLoading}
-                      >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Windsurf" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Windsurf</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Bolt.new" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Bolt.new</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="Lovable" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Lovable</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
+                     <FormControl>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(["Windsurf", "Bolt.new", "Lovable"] as const).map((tool) => (
+                          <Card
+                            key={tool}
+                            onClick={() => form.setValue("buildTool", tool)}
+                            className={cn(
+                              "cursor-pointer transition-all hover:shadow-lg",
+                              form.watch("buildTool") === tool
+                                ? "border-accent ring-2 ring-accent"
+                                : "border-border"
+                            )}
+                          >
+                            <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                              <h3 className="font-bold text-lg">{tool}</h3>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-center pt-2" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={!canGenerate || isLoading} className="w-full">
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Wand2 className="mr-2 h-4 w-4" />
-                )}
-                Generate Plan
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            )}
 
-      <div>
-        <Card className="min-h-[500px]">
-          <CardHeader>
-            <div className="flex justify-between items-center">
+            {currentStep === 3 && (
+              <div className="min-h-[300px]">
+                 {isLoading && (
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-1/3" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                    <br />
+                    <Skeleton className="h-6 w-1/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <br />
+                    <Skeleton className="h-6 w-1/3" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                  </div>
+                )}
+                {generatedMarkdown ? (
+                  <>
+                  <div className="flex justify-end mb-4">
+                     <Button variant="outline" size="sm" onClick={handleDownload} aria-label="Download plan">
+                      <Download className="mr-2" /> Download
+                    </Button>
+                  </div>
+                  <pre className="whitespace-pre-wrap font-sans text-sm p-4 bg-muted/30 rounded-md overflow-x-auto">
+                    {generatedMarkdown}
+                  </pre>
+                  </>
+                ) : (
+                  !isLoading && (
+                    <div className="text-center text-muted-foreground py-16">
+                      <Wand2 className="mx-auto h-12 w-12 mb-4" />
+                      <p>Something went wrong. Please try generating your plan again.</p>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-4">
               <div>
-                <CardTitle>Your Generated Plan</CardTitle>
-                <CardDescription>Here's the AI-generated roadmap for your app.</CardDescription>
+                {currentStep > 0 && currentStep < 3 && (
+                  <Button type="button" variant="ghost" onClick={handleBack} disabled={isLoading}>
+                    <ArrowLeft className="mr-2" />
+                    Back
+                  </Button>
+                )}
               </div>
-              {generatedMarkdown && (
-                <Button variant="outline" size="icon" onClick={handleDownload} aria-label="Download plan">
-                  <Download className="h-4 w-4" />
-                </Button>
-              )}
+
+              <div>
+                {currentStep < 2 && (
+                  <Button type="button" onClick={handleNext} disabled={!canGenerate || isLoading}>
+                    Next <ArrowRight className="ml-2" />
+                  </Button>
+                )}
+
+                {currentStep === 2 && (
+                  <Button type="submit" disabled={!canGenerate || isLoading || !form.watch("buildTool")}>
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="mr-2 h-4 w-4" />
+                    )}
+                    Generate Plan
+                  </Button>
+                )}
+                 {currentStep === 3 && (
+                  <Button type="button" onClick={() => setCurrentStep(0)}>
+                    Start Over
+                  </Button>
+                )}
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading && (
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-                <br />
-                <Skeleton className="h-6 w-1/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-                 <br />
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-              </div>
-            )}
-            {generatedMarkdown ? (
-              <pre className="whitespace-pre-wrap font-sans text-sm p-4 bg-muted/50 rounded-md overflow-x-auto">
-                {generatedMarkdown}
-              </pre>
-            ) : (
-              !isLoading && (
-                <div className="text-center text-muted-foreground py-16">
-                  <Wand2 className="mx-auto h-12 w-12 mb-4" />
-                  <p>Your plan will appear here once generated.</p>
-                </div>
-              )
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
