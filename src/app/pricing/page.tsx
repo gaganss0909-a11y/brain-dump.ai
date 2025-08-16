@@ -47,7 +47,7 @@ const tiers = [
     ],
     cta: "Choose Yearly",
     href: null,
-    priceId: "price_1Rwkm1EgC7zAkK6POlWUzq8C", // Placeholder - replace with your actual Price ID
+    priceId: "price_1RwlUDLivI9SQBv0tV4P49ww", 
   },
 ];
 
