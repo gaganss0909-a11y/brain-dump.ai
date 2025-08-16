@@ -1,9 +1,13 @@
 
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { StripeCheckoutButton } from "@/components/stripe-checkout-button";
+
 
 const tiers = [
   {
@@ -15,7 +19,8 @@ const tiers = [
       "Basic support",
     ],
     cta: "Start for Free",
-    href: "/dashboard"
+    href: "/dashboard",
+    priceId: null,
   },
   {
     name: "Monthly",
@@ -27,7 +32,8 @@ const tiers = [
       "Access to new features",
     ],
     cta: "Choose Monthly",
-    href: "https://buy.stripe.com/your_monthly_price_id" // Placeholder for Stripe checkout link
+    href: "https://buy.stripe.com/your_monthly_price_id", // Placeholder for Stripe checkout link
+    priceId: "your_monthly_price_id_goes_here", // Placeholder
   },
   {
     name: "Yearly",
@@ -40,7 +46,8 @@ const tiers = [
         "Save over 50%",
     ],
     cta: "Choose Yearly",
-    href: "https://buy.stripe.com/price_1Rwkm1EgC7zAkK6POlWUzq8C"
+    href: null,
+    priceId: "price_1Rwkm1EgC7zAkK6POlWUzq8C"
   },
 ];
 
@@ -80,15 +87,21 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button asChild className="w-full">
-                      <Link href={tier.href}>{tier.cta}</Link>
-                    </Button>
+                    {tier.priceId && tier.priceId.startsWith('price_') ? (
+                       <StripeCheckoutButton priceId={tier.priceId}>
+                         {tier.cta}
+                       </StripeCheckoutButton>
+                    ) : (
+                       <Button asChild className="w-full" disabled={tier.name === 'Monthly'}>
+                        <Link href={tier.href || ''}>{tier.cta}</Link>
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               ))}
             </div>
              <p className="text-center text-sm text-muted-foreground mt-4">
-                Note: To get a real checkout link, replace the placeholder IDs with your actual Stripe Price IDs.
+                Note: The Monthly plan is currently disabled. To enable it, replace the placeholder Price ID with your actual Stripe Price ID.
             </p>
           </div>
         </section>
@@ -96,3 +109,4 @@ export default function PricingPage() {
     </div>
   );
 }
+
