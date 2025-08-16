@@ -50,7 +50,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email: userCredential.user.email,
       subscriptionTier: "Free",
-      generationCount: 0
     });
 
     router.push("/dashboard");

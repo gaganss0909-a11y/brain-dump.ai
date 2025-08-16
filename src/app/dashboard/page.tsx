@@ -89,7 +89,7 @@ export default function DashboardPage() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setSubscription(data.subscriptionTier || "Free");
-          setGenerationCount(data.generationCount || 0);
+          setGenerationCount(data.generations || 0);
         } else {
           // Handle case where user doc might not exist yet
           setSubscription("Free");

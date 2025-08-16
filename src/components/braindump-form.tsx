@@ -25,8 +25,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Loader2, Wand2, ArrowLeft, ArrowRight, Smartphone, Globe } from "lucide-react";
 
 const formSchema = z.object({
-  appIdea: z.string().min(20, {
-    message: "Your app idea must be at least 20 characters to generate a meaningful plan.",
+  appIdea: z.string().min(10, {
+    message: "Your app idea must be at least 10 characters to generate a meaningful plan.",
   }),
   appType: z.enum(["Web App", "Mobile App"], {
     required_error: "You need to select an app type.",
