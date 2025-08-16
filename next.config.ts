@@ -18,6 +18,43 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/login',
+        permanent: false,
+        missing: [
+          {
+            type: 'cookie',
+            key: 'user',
+          },
+        ],
+      },
+       {
+        source: '/login',
+        destination: '/dashboard',
+        permanent: false,
+        has: [
+          {
+            type: 'cookie',
+            key: 'user',
+          },
+        ],
+      },
+       {
+        source: '/signup',
+        destination: '/dashboard',
+        permanent: false,
+        has: [
+          {
+            type: 'cookie',
+            key: 'user',
+          },
+        ],
+      },
+    ]
+  },
 };
 
 export default nextConfig;

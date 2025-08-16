@@ -1,7 +1,16 @@
+"use client";
+
 import { Header } from "@/components/header";
 import { BrainDumpForm } from "@/components/braindump-form";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return null;
+  }
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
