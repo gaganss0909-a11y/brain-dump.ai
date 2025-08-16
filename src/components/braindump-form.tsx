@@ -35,7 +35,13 @@ const formSchema = z.object({
   }),
 });
 
-export function BrainDumpForm() {
+interface BrainDumpFormProps {
+  canGenerate: boolean;
+  onGenerate: () => void;
+}
+
+
+export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
   const [generatedMarkdown, setGeneratedMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -48,6 +54,15 @@ export function BrainDumpForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!canGenerate) {
+       toast({
+        variant: "destructive",
+        title: "Generation Limit Reached",
+        description: "Please upgrade to a paid plan to generate more plans.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setGeneratedMarkdown(null);
     const result = await generatePlanAction(values);
@@ -55,6 +70,7 @@ export function BrainDumpForm() {
 
     if (result.success) {
       setGeneratedMarkdown(result.data!);
+      onGenerate(); // Notify parent component that a generation occurred
     } else {
       toast({
         variant: "destructive",
@@ -97,6 +113,7 @@ export function BrainDumpForm() {
                         placeholder="e.g., An app that helps users track their plant watering schedules with reminders and plant care tips."
                         className="min-h-[150px]"
                         {...field}
+                        disabled={!canGenerate || isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -114,6 +131,7 @@ export function BrainDumpForm() {
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         className="flex flex-col space-y-1"
+                        disabled={!canGenerate || isLoading}
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
@@ -144,6 +162,7 @@ export function BrainDumpForm() {
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         className="flex flex-col space-y-1"
+                        disabled={!canGenerate || isLoading}
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
@@ -169,7 +188,7 @@ export function BrainDumpForm() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading} className="w-full">
+              <Button type="submit" disabled={!canGenerate || isLoading} className="w-full">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
