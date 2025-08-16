@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,9 @@ export function Header() {
         <span className="ml-2 text-lg font-semibold font-headline">BrainDump.io</span>
       </Link>
       <nav className="flex items-center gap-2">
+        <Button variant="link" asChild>
+          <Link href="/pricing">Pricing</Link>
+        </Button>
         {user ? (
           <>
             <span className="text-sm text-muted-foreground hidden sm:inline-block">{user.email}</span>
