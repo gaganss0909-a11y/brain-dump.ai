@@ -21,20 +21,20 @@ const formSchema = z.object({
   }),
 });
 
-async function incrementGenerationCountAction() {
+async function incrementGenerationCount() {
     const headersList = headers();
     const userCookie = headersList.get('cookie')?.split('; ').find(c => c.startsWith('user='))?.split('=')[1];
     
     if (!userCookie) {
-        throw new Error("Authentication required. Please log in.");
+        // This case should ideally not be hit if the page is protected
+        throw new Error("Authentication required to increment count.");
     }
     
-    // The cookie is URL-encoded, so we need to decode it before parsing
     const decodedCookie = decodeURIComponent(userCookie);
     const user = JSON.parse(decodedCookie);
 
-    if (!user || !user.uid) {
-        throw new Error("Authentication failed. User not found.");
+    if (!user?.uid) {
+        throw new Error("Invalid user data in cookie.");
     }
 
     const userDocRef = doc(db, "users", user.uid);
@@ -49,10 +49,13 @@ export async function generatePlanAction(values: z.infer<typeof formSchema>) {
     const validatedData: GenerateAppMarkdownInput = formSchema.parse(values);
     const result = await generateAppMarkdown(validatedData);
 
-    if(result) {
-        await incrementGenerationCountAction();
+    // Only increment count if the generation was successful
+    if (result) {
+        await incrementGenerationCount();
     }
+    
     return { success: true, data: result.markdownContent };
+
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: "Validation failed.", issues: error.errors };

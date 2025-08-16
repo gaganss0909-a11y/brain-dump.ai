@@ -158,7 +158,7 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
         <div className="relative overflow-hidden min-h-[350px]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col justify-between h-full min-h-[350px]">
-              <div className="relative h-[250px]">
+              <div className="relative h-full flex-grow">
                 <AnimatePresence initial={false} custom={direction}>
                   {currentStep === 0 && (
                     <motion.div
@@ -169,17 +169,17 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
                       animate="center"
                       exit="exit"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      className="absolute w-full"
+                      className="absolute w-full h-full"
                     >
                     <FormField
                       control={form.control}
                       name="appIdea"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
+                        <FormItem className="h-full flex flex-col">
+                          <FormControl className="flex-grow">
                             <Textarea
                               placeholder="e.g., An app that helps users track their plant watering schedules with reminders and plant care tips."
-                              className="min-h-[200px] bg-background"
+                              className="min-h-[200px] h-full bg-background"
                               {...field}
                               disabled={!canGenerate || isLoading}
                             />
@@ -288,7 +288,7 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
                       animate="center"
                       exit="exit"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      className="absolute w-full"
+                      className="absolute w-full h-full"
                     >
                     <div className="h-[250px] overflow-y-auto">
                       {isLoading && (
