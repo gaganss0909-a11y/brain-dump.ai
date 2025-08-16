@@ -7,6 +7,7 @@ import { useState } from "react";
 import { generatePlanAction } from "@/app/dashboard/actions";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,8 +48,29 @@ const stepHeaders = [
   { title: "Your Generated Plan", description: "Here's the AI-generated roadmap for your app." },
 ];
 
+const variants = {
+  enter: (direction: number) => {
+    return {
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    };
+  },
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1
+  },
+  exit: (direction: number) => {
+    return {
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    };
+  }
+};
+
 export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [[currentStep, direction], setCurrentStep] = useState([0, 0]);
   const [generatedMarkdown, setGeneratedMarkdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -71,13 +93,19 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
     }
 
     if (isValid) {
-      setCurrentStep((prev) => prev + 1);
+      setCurrentStep(state => [state[0] + 1, 1]);
     }
   };
 
   const handleBack = () => {
-    setCurrentStep((prev) => prev - 1);
+    setCurrentStep(state => [state[0] - 1, -1]);
   };
+
+  const handleStartOver = () => {
+    form.reset();
+    setGeneratedMarkdown(null);
+    setCurrentStep([0, -1]);
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!canGenerate) {
@@ -91,7 +119,7 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
 
     setIsLoading(true);
     setGeneratedMarkdown(null);
-    setCurrentStep(3); // Move to the results view
+    setCurrentStep([3, 1]); // Move to the results view
     const result = await generatePlanAction(values);
     setIsLoading(false);
 
@@ -104,7 +132,7 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
         title: "Oh no! Something went wrong.",
         description: result.error,
       });
-      setCurrentStep(2); // Go back to the last step on error
+      setCurrentStep([2, -1]); // Go back to the last step on error
     }
   }
 
@@ -121,139 +149,197 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full relative overflow-hidden">
       <CardHeader>
         <CardTitle>{stepHeaders[currentStep].title}</CardTitle>
         <CardDescription>{stepHeaders[currentStep].description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-h-[350px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {currentStep === 0 && (
-              <FormField
-                control={form.control}
-                name="appIdea"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="e.g., An app that helps users track their plant watering schedules with reminders and plant care tips."
-                        className="min-h-[200px] bg-background"
-                        {...field}
-                        disabled={!canGenerate || isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+            <AnimatePresence initial={false} custom={direction}>
+                {currentStep === 0 && (
+                  <motion.div
+                    key={0}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    className="absolute w-full px-6"
+                  >
+                  <FormField
+                    control={form.control}
+                    name="appIdea"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., An app that helps users track their plant watering schedules with reminders and plant care tips."
+                            className="min-h-[200px] bg-background"
+                            {...field}
+                            disabled={!canGenerate || isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  </motion.div>
                 )}
-              />
-            )}
 
-            {currentStep === 1 && (
-              <FormField
-                control={form.control}
-                name="appType"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormControl>
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(["Mobile App", "Web App"] as const).map((type) => (
-                           <Card
-                            key={type}
-                            onClick={() => form.setValue("appType", type)}
-                            className={cn(
-                              "cursor-pointer transition-all hover:shadow-lg",
-                              form.watch("appType") === type
-                                ? "border-accent ring-2 ring-accent"
-                                : "border-border"
-                            )}
-                          >
-                            <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                               {type === 'Mobile App' ? <Smartphone className="h-10 w-10 text-accent" /> : <Globe className="h-10 w-10 text-accent" />}
-                              <h3 className="font-bold text-lg">{type}</h3>
-                              <p className="text-muted-foreground text-sm">{type === 'Mobile App' ? 'iOS and Android' : 'Browser-based'}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-center pt-2" />
-                  </FormItem>
+                {currentStep === 1 && (
+                   <motion.div
+                    key={1}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    className="absolute w-full px-6"
+                  >
+                  <FormField
+                    control={form.control}
+                    name="appType"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormControl>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {(["Mobile App", "Web App"] as const).map((type) => (
+                              <Card
+                                key={type}
+                                onClick={() => form.setValue("appType", type)}
+                                className={cn(
+                                  "cursor-pointer transition-all hover:shadow-lg",
+                                  form.watch("appType") === type
+                                    ? "border-accent ring-2 ring-accent"
+                                    : "border-border"
+                                )}
+                              >
+                                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                                  {type === 'Mobile App' ? <Smartphone className="h-10 w-10 text-accent" /> : <Globe className="h-10 w-10 text-accent" />}
+                                  <h3 className="font-bold text-lg">{type}</h3>
+                                  <p className="text-muted-foreground text-sm">{type === 'Mobile App' ? 'iOS and Android' : 'Browser-based'}</p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-center pt-2" />
+                      </FormItem>
+                    )}
+                  />
+                  </motion.div>
                 )}
-              />
-            )}
-            
-            {currentStep === 2 && (
-               <FormField
-                control={form.control}
-                name="buildTool"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                     <FormControl>
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {(["Windsurf", "Bolt.new", "Lovable"] as const).map((tool) => (
-                          <Card
-                            key={tool}
-                            onClick={() => form.setValue("buildTool", tool)}
-                            className={cn(
-                              "cursor-pointer transition-all hover:shadow-lg",
-                              form.watch("buildTool") === tool
-                                ? "border-accent ring-2 ring-accent"
-                                : "border-border"
-                            )}
-                          >
-                            <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                              <h3 className="font-bold text-lg">{tool}</h3>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-center pt-2" />
-                  </FormItem>
+                
+                {currentStep === 2 && (
+                  <motion.div
+                    key={2}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    className="absolute w-full px-6"
+                  >
+                   <FormField
+                    control={form.control}
+                    name="buildTool"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormControl>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {(["Windsurf", "Bolt.new", "Lovable"] as const).map((tool) => (
+                              <Card
+                                key={tool}
+                                onClick={() => form.setValue("buildTool", tool)}
+                                className={cn(
+                                  "cursor-pointer transition-all hover:shadow-lg",
+                                  form.watch("buildTool") === tool
+                                    ? "border-accent ring-2 ring-accent"
+                                    : "border-border"
+                                )}
+                              >
+                                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                                  <h3 className="font-bold text-lg">{tool}</h3>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-center pt-2" />
+                      </FormItem>
+                    )}
+                  />
+                  </motion.div>
                 )}
-              />
-            )}
 
-            {currentStep === 3 && (
-              <div className="min-h-[300px]">
-                 {isLoading && (
-                  <div className="space-y-4">
-                    <Skeleton className="h-6 w-1/3" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-4/5" />
-                    <br />
-                    <Skeleton className="h-6 w-1/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                    <br />
-                    <Skeleton className="h-6 w-1/3" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-4/5" />
+                {currentStep === 3 && (
+                   <motion.div
+                    key={3}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    className="absolute w-full px-6"
+                  >
+                  <div className="min-h-[300px]">
+                    {isLoading && (
+                      <div className="space-y-4">
+                        <Skeleton className="h-6 w-1/3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                        <br />
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                        <br />
+                        <Skeleton className="h-6 w-1/3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                      </div>
+                    )}
+                    {generatedMarkdown ? (
+                      <>
+                      <div className="flex justify-end mb-4">
+                        <Button variant="outline" size="sm" onClick={handleDownload} aria-label="Download plan">
+                          <Download className="mr-2" /> Download
+                        </Button>
+                      </div>
+                      <pre className="whitespace-pre-wrap font-sans text-sm p-4 bg-muted/30 rounded-md overflow-x-auto">
+                        {generatedMarkdown}
+                      </pre>
+                      </>
+                    ) : (
+                      !isLoading && (
+                        <div className="text-center text-muted-foreground py-16">
+                          <Wand2 className="mx-auto h-12 w-12 mb-4" />
+                          <p>Something went wrong. Please try generating your plan again.</p>
+                        </div>
+                      )
+                    )}
                   </div>
+                  </motion.div>
                 )}
-                {generatedMarkdown ? (
-                  <>
-                  <div className="flex justify-end mb-4">
-                     <Button variant="outline" size="sm" onClick={handleDownload} aria-label="Download plan">
-                      <Download className="mr-2" /> Download
-                    </Button>
-                  </div>
-                  <pre className="whitespace-pre-wrap font-sans text-sm p-4 bg-muted/30 rounded-md overflow-x-auto">
-                    {generatedMarkdown}
-                  </pre>
-                  </>
-                ) : (
-                  !isLoading && (
-                    <div className="text-center text-muted-foreground py-16">
-                      <Wand2 className="mx-auto h-12 w-12 mb-4" />
-                      <p>Something went wrong. Please try generating your plan again.</p>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
+              </AnimatePresence>
 
             <div className="flex justify-between items-center pt-4">
               <div>
@@ -283,7 +369,7 @@ export function BrainDumpForm({ canGenerate, onGenerate }: BrainDumpFormProps) {
                   </Button>
                 )}
                  {currentStep === 3 && (
-                  <Button type="button" onClick={() => setCurrentStep(0)}>
+                  <Button type="button" onClick={handleStartOver}>
                     Start Over
                   </Button>
                 )}
