@@ -11,35 +11,32 @@ export function Header() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+    <header className="px-4 lg:px-6 h-16 flex items-center border-b">
       <Link href="/" className="flex items-center justify-center mr-auto" prefetch={false}>
-        <BrainIcon className="h-6 w-6 text-primary" />
-        <span className="ml-2 text-lg font-semibold font-headline">BrainDump.io</span>
+        <BrainIcon className="h-8 w-8 text-primary" />
+        <span className="ml-3 text-xl font-bold font-headline tracking-wider">BRAINDUMP</span>
       </Link>
-      <nav className="flex items-center gap-2">
+      <nav className="flex items-center gap-4">
         <Button variant="link" asChild>
           <Link href="/pricing">Pricing</Link>
         </Button>
         {user ? (
           <>
             <span className="text-sm text-muted-foreground hidden sm:inline-block">{user.email}</span>
-            <Button variant="ghost" size="icon" onClick={logout}>
+            <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout">
               <LogOut />
-              <span className="sr-only">Logout</span>
             </Button>
           </>
         ) : (
           <>
             <Button variant="ghost" asChild>
               <Link href="/login">
-                <LogIn />
-                <span className="hidden sm:inline-block ml-2">Login</span>
+                Login
               </Link>
             </Button>
-            <Button asChild>
+            <Button asChild variant="outline">
               <Link href="/signup">
-                <UserPlus />
-                <span className="hidden sm:inline-block ml-2">Sign Up</span>
+                Create Account
               </Link>
             </Button>
           </>
