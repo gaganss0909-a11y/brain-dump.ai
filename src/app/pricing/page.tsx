@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Header } from "@/components/header";
 import { Check } from "lucide-react";
 import Link from "next/link";
-import { StripeCheckoutButton } from "@/components/stripe-checkout-button";
 
 
 const tiers = [
@@ -19,8 +18,7 @@ const tiers = [
       "Basic support",
     ],
     cta: "Start for Free",
-    href: "/dashboard",
-    priceId: null,
+    href: "/dashboard"
   },
   {
     name: "Monthly",
@@ -32,8 +30,7 @@ const tiers = [
       "Access to new features",
     ],
     cta: "Choose Monthly",
-    href: "https://buy.stripe.com/your_monthly_price_id", // Placeholder for Stripe checkout link
-    priceId: "your_monthly_price_id_goes_here", // Placeholder
+    href: "#"
   },
   {
     name: "Yearly",
@@ -46,8 +43,7 @@ const tiers = [
         "Save over 50%",
     ],
     cta: "Choose Yearly",
-    href: null,
-    priceId: "price_1Rwkm1EgC7zAkK6POlWUzq8C"
+    href: "#"
   },
 ];
 
@@ -87,22 +83,13 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    {tier.priceId && tier.priceId.startsWith('price_') ? (
-                       <StripeCheckoutButton priceId={tier.priceId}>
-                         {tier.cta}
-                       </StripeCheckoutButton>
-                    ) : (
-                       <Button asChild className="w-full" disabled={tier.name === 'Monthly'}>
-                        <Link href={tier.href || ''}>{tier.cta}</Link>
-                      </Button>
-                    )}
+                    <Button asChild className="w-full">
+                      <Link href={tier.href || ''}>{tier.cta}</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
-             <p className="text-center text-sm text-muted-foreground mt-4">
-                Note: The Monthly plan is currently disabled. To enable it, replace the placeholder Price ID with your actual Stripe Price ID.
-            </p>
           </div>
         </section>
       </main>
