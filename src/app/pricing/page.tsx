@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Header } from "@/components/header";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { StripeCheckoutButton } from "@/components/stripe-checkout-button";
 
 
 const tiers = [
@@ -18,7 +19,8 @@ const tiers = [
       "Basic support",
     ],
     cta: "Start for Free",
-    href: "/dashboard"
+    href: "/dashboard",
+    priceId: null,
   },
   {
     name: "Monthly",
@@ -30,7 +32,8 @@ const tiers = [
       "Access to new features",
     ],
     cta: "Choose Monthly",
-    href: "#"
+    href: null,
+    priceId: "price_1Rwl9pLivI9SQBv08eJvjVpF", // Placeholder - replace with your actual Price ID
   },
   {
     name: "Yearly",
@@ -43,7 +46,8 @@ const tiers = [
         "Save over 50%",
     ],
     cta: "Choose Yearly",
-    href: "#"
+    href: null,
+    priceId: "price_1Rwkm1EgC7zAkK6POlWUzq8C", // Placeholder - replace with your actual Price ID
   },
 ];
 
@@ -83,9 +87,13 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button asChild className="w-full">
-                      <Link href={tier.href || ''}>{tier.cta}</Link>
-                    </Button>
+                    {tier.priceId ? (
+                       <StripeCheckoutButton priceId={tier.priceId} label={tier.cta} />
+                    ) : (
+                      <Button asChild className="w-full">
+                        <Link href={tier.href || ''}>{tier.cta}</Link>
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               ))}
@@ -96,4 +104,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
