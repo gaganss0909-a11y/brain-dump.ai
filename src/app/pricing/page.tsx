@@ -27,7 +27,7 @@ const tiers = [
       "Access to new features",
     ],
     cta: "Choose Monthly",
-    href: "#" // Placeholder for Stripe checkout link
+    href: "https://buy.stripe.com/your_monthly_price_id" // Placeholder for Stripe checkout link
   },
   {
     name: "Yearly",
@@ -40,7 +40,7 @@ const tiers = [
         "Save over 50%",
     ],
     cta: "Choose Yearly",
-    href: "#" // Placeholder for Stripe checkout link
+    href: "https://buy.stripe.com/price_1Rwkm1EgC7zAkK6POlWUzq8C"
   },
 ];
 
@@ -88,7 +88,7 @@ export default function PricingPage() {
               ))}
             </div>
              <p className="text-center text-sm text-muted-foreground mt-4">
-                Note: Stripe integration is not fully implemented. The checkout buttons are placeholders.
+                Note: To get a real checkout link, replace the placeholder IDs with your actual Stripe Price IDs.
             </p>
           </div>
         </section>
